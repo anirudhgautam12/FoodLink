@@ -93,3 +93,22 @@ export const claimFood = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get donor's own food listings
+// @route   GET /api/food/donor
+// @access  Private (Donor only)
+export const getDonorListings = async (req, res) => {
+  try {
+    if (req.user.role !== 'Donor' && req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Only Donors can access their listings' });
+    }
+
+    const listings = await Food.find({ donorId: req.user._id })
+      .populate('receiverId', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json(listings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
