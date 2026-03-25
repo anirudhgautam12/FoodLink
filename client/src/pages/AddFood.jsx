@@ -37,10 +37,55 @@ const AddFood = () => {
   
   const [status, setStatus] = useState({ loading: false, type: '', message: '' });
   const [detectingLocation, setDetectingLocation] = useState(false);
+  
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchingLocation, setSearchingLocation] = useState(false);
+  const searchTimeoutRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLocationSearch = async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchingLocation(true);
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error("Location search failed", error);
+    } finally {
+      setSearchingLocation(false);
+    }
+  };
+
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, location: { ...prev.location, address: value, lat: null, lng: null } }));
+    
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    
+    // Debounce search
+    searchTimeoutRef.current = setTimeout(() => {
+      handleLocationSearch(value);
+    }, 500);
+  };
+  
+  const selectLocation = (result) => {
+    setFormData(prev => ({
+      ...prev,
+      location: {
+        address: result.display_name,
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon)
+      }
+    }));
+    setSearchResults([]);
   };
 
   const handleDragOver = (e) => {
@@ -104,6 +149,11 @@ const AddFood = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, type: '', message: '' });
+
+    if (!formData.location.lat || !formData.location.lng) {
+      setStatus({ loading: false, type: 'error', message: 'Please select a valid location from the dropdown suggestions or use Auto-Locate.' });
+      return;
+    }
 
     try {
       // In a real app, upload image to a bucket (S3, Cloudinary) here and get the URL
@@ -295,25 +345,64 @@ const AddFood = () => {
                       <MapPin size={16} className="mr-2 text-green-500" />
                       Pickup Location
                     </label>
-                    <div className="flex gap-3">
-                      <input
-                        type="text"
-                        name="address"
-                        required
-                        value={formData.location.address}
-                        onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, address: e.target.value } }))}
-                        placeholder="Enter location manually or use GPS"
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-                      />
+                    <div className="relative flex gap-3">
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          name="address"
+                          required
+                          value={formData.location.address}
+                          onChange={handleLocationChange}
+                          placeholder="Search for a place or use auto-locate"
+                          className={`w-full px-4 py-3 rounded-xl border focus:outline-none transition-all ${
+                            formData.location.lat ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200' : 'border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200'
+                          }`}
+                        />
+                        {searchingLocation && (
+                          <div className="absolute right-3 top-3">
+                            <svg className="animate-spin h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
+                        )}
+                        {/* Autocomplete Dropdown */}
+                        {searchResults.length > 0 && (
+                          <div className="absolute z-20 w-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-60 overflow-y-auto">
+                            {searchResults.map((result) => (
+                              <button
+                                key={result.place_id}
+                                type="button"
+                                onClick={() => selectLocation(result)}
+                                className="w-full text-left px-4 py-3 hover:bg-green-50 text-sm text-gray-700 transition-colors border-b border-gray-50 last:border-0 flex items-start"
+                              >
+                                <MapPin size={16} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                                <span className="line-clamp-2">{result.display_name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={detectLocation}
                         disabled={detectingLocation}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-colors border border-gray-200 disabled:opacity-50"
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-colors border border-gray-200 disabled:opacity-50 whitespace-nowrap"
                       >
                         {detectingLocation ? 'Detecting...' : 'Auto-Locate'}
                       </button>
                     </div>
+                    {/* Validation helper text */}
+                    {formData.location.address && !formData.location.lat && !searchResults.length && (
+                      <p className="text-orange-500 text-xs mt-2 flex items-center">
+                        <span className="font-semibold mr-1">!</span> Please select a verified location from the dropdown.
+                      </p>
+                    )}
+                    {formData.location.address && formData.location.lat && (
+                      <p className="text-green-600 text-xs mt-2 flex items-center font-medium">
+                        <CheckCircle size={14} className="mr-1" /> Verified Location
+                      </p>
+                    )}
                   </div>
 
                 </div>
