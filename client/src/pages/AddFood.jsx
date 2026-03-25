@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  UploadCloud, 
-  MapPin, 
-  Clock, 
-  Leaf, 
-  Flame, 
-  Users, 
+import {
+  UploadCloud,
+  MapPin,
+  Clock,
+  Leaf,
+  Flame,
+  Users,
   ArrowLeft,
   CheckCircle,
   XCircle,
@@ -34,10 +34,10 @@ const AddFood = () => {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const [status, setStatus] = useState({ loading: false, type: '', message: '' });
   const [detectingLocation, setDetectingLocation] = useState(false);
-  
+
   const [searchResults, setSearchResults] = useState([]);
   const [searchingLocation, setSearchingLocation] = useState(false);
   const searchTimeoutRef = useRef(null);
@@ -67,15 +67,15 @@ const AddFood = () => {
   const handleLocationChange = (e) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, location: { ...prev.location, address: value, lat: null, lng: null } }));
-    
+
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    
+
     // Debounce search
     searchTimeoutRef.current = setTimeout(() => {
       handleLocationSearch(value);
     }, 500);
   };
-  
+
   const selectLocation = (result) => {
     setFormData(prev => ({
       ...prev,
@@ -160,7 +160,7 @@ const AddFood = () => {
       // Since this is a hackathon project, we'll send the data we have.
       // If the backend accepts FormData, we could send `image` file directly.
       // For now, mirroring original behavior and adding extra fields.
-      
+
       const payload = {
         name: formData.name,
         quantity: Number(formData.quantity),
@@ -173,9 +173,9 @@ const AddFood = () => {
       };
 
       await api.post('/food', payload);
-      
+
       setStatus({ loading: false, type: 'success', message: 'Food successfully listed and nearby people will be notified!' });
-      
+
       // Reset form or navigate away after a delay
       setTimeout(() => {
         navigate('/dashboard');
@@ -192,7 +192,7 @@ const AddFood = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans text-gray-800">
       <div className="max-w-6xl mx-auto">
-        <button 
+        <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center text-gray-500 hover:text-green-600 transition-colors mb-8 font-medium"
         >
@@ -201,7 +201,7 @@ const AddFood = () => {
         </button>
 
         <div className="grid lg:grid-cols-3 gap-10">
-          
+
           {/* Form Column */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
@@ -209,12 +209,11 @@ const AddFood = () => {
               <p className="text-gray-500 mb-8">Fill out the details below to share your extra food with the community. Every meal counts!</p>
 
               {status.message && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} 
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-xl mb-8 flex items-start gap-3 ${
-                    status.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-                  }`}
+                  className={`p-4 rounded-xl mb-8 flex items-start gap-3 ${status.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                    }`}
                 >
                   {status.type === 'error' ? <XCircle className="mt-0.5 flex-shrink-0" /> : <CheckCircle className="mt-0.5 flex-shrink-0" />}
                   <p className="font-medium">{status.message}</p>
@@ -222,29 +221,28 @@ const AddFood = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-8">
-                
+
                 {/* Image Upload Component */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">Food Photo</label>
-                  <div 
+                  <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
-                      isDragging ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-gray-50'
-                    }`}
+                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${isDragging ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-gray-50'
+                      }`}
                   >
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      ref={fileInputRef} 
+                    <input
+                      type="file"
+                      className="hidden"
+                      ref={fileInputRef}
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files?.length > 0) handleImageSelection(e.target.files[0]);
                       }}
                     />
-                    
+
                     {imagePreview ? (
                       <div className="relative w-full h-48 rounded-xl overflow-hidden group">
                         <img src={imagePreview} alt="Food preview" className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
@@ -305,18 +303,16 @@ const AddFood = () => {
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, type: 'veg' }))}
-                        className={`flex-1 flex justify-center items-center py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          formData.type === 'veg' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                        className={`flex-1 flex justify-center items-center py-2.5 rounded-lg text-sm font-medium transition-all ${formData.type === 'veg' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'
+                          }`}
                       >
                         <Leaf size={16} className="mr-2" /> Veg
                       </button>
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, type: 'non-veg' }))}
-                        className={`flex-1 flex justify-center items-center py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          formData.type === 'non-veg' ? 'bg-white shadow-sm text-red-600' : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                        className={`flex-1 flex justify-center items-center py-2.5 rounded-lg text-sm font-medium transition-all ${formData.type === 'non-veg' ? 'bg-white shadow-sm text-red-600' : 'text-gray-500 hover:text-gray-700'
+                          }`}
                       >
                         <Flame size={16} className="mr-2" /> Non-Veg
                       </button>
@@ -354,9 +350,8 @@ const AddFood = () => {
                           value={formData.location.address}
                           onChange={handleLocationChange}
                           placeholder="Search for a place or use auto-locate"
-                          className={`w-full px-4 py-3 rounded-xl border focus:outline-none transition-all ${
-                            formData.location.lat ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200' : 'border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200'
-                          }`}
+                          className={`w-full px-4 py-3 rounded-xl border focus:outline-none transition-all ${formData.location.lat ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200' : 'border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200'
+                            }`}
                         />
                         {searchingLocation && (
                           <div className="absolute right-3 top-3">
@@ -434,7 +429,7 @@ const AddFood = () => {
           <div className="lg:col-span-1 hidden lg:block">
             <div className="sticky top-24">
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Live Preview</h3>
-              
+
               <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 {/* Preview Image */}
                 <div className="h-48 bg-gray-100 relative">
@@ -447,9 +442,8 @@ const AddFood = () => {
                   )}
                   {/* Badges */}
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <span className={`px-3 py-1 rounded-lg text-xs font-bold shadow-sm backdrop-blur-md ${
-                      formData.type === 'veg' ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-bold shadow-sm backdrop-blur-md ${formData.type === 'veg' ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'
+                      }`}>
                       {formData.type === 'veg' ? 'Veg' : 'Non-Veg'}
                     </span>
                   </div>
@@ -460,13 +454,18 @@ const AddFood = () => {
                   <h4 className="text-xl font-bold text-gray-900 line-clamp-2 mb-2">
                     {formData.name || 'Your Food Title Here'}
                   </h4>
-                  
+
+
+
+
+
+
                   <div className="space-y-3 mt-4 text-sm font-medium text-gray-600">
                     <div className="flex items-center">
                       <Users size={16} className="text-gray-400 mr-3" />
                       Provides {formData.quantity || '0'} people
                     </div>
-                    
+
                     <div className="flex items-start">
                       <MapPin size={16} className="text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="line-clamp-2">
